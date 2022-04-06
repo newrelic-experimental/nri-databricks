@@ -21,16 +21,18 @@
 ## Installation    
 
 Import the `install-nr.pynb` notebook into your workspace and execute it. 
-This will produce the initialization script that would download, install and configure this integration upon cluster initialization.
+This will produce the initialization script that would download, install and configure this integration upon cluster initialization. 
+The file is written to this path **dbfs:/newrelic/nri-databricks-init.sh**
+Add this initialization script to the list of initialization files for every cluster manager that needs to be monitored.
 
 The following environment variables should be defined in your databricks cluster configuration for the initialization script to create the correct configuration
 
 1. NEWRELIC_ACCOUNT_ID
-2. NEWRELIC_LIC_KEY
+2. NEWRELIC_LICENSE_KEY
 
 ## Configuration    
 
-Then fill in the relevant information in the **config.yml** file in the root folder
+The install script produces the configuration in the **config.yml** file. The following properties are filled in from environment variables or files.
      
 ### General Configuration
 
@@ -55,11 +57,6 @@ Then fill in the relevant information in the **config.yml** file in the root fol
 
 ### Other Configuration
 - **labels**: (optional) labels are tags added to every newrelic event
-
-## Usage
-1. Run  `python -m pip install -r requirements.txt` to install dependencies    
-2. Run  `python src/__main__.py` to run the integration    
-
     
 ## Support    
 New Relic has open-sourced this project. This project is provided AS-IS WITHOUT WARRANTY OR DEDICATED SUPPORT. Issues and contributions should be reported to the project here on GitHub.    
