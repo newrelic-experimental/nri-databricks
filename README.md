@@ -2,20 +2,19 @@
     
 [![New Relic Experimental header](https://github.com/newrelic/opensource-website/raw/master/src/images/categories/Experimental.png)](https://opensource.newrelic.com/oss-category/#new-relic-experimental)    
     
-![GitHub forks](https://img.shields.io/github/forks/newrelic-experimental/nri-databricks?style=social)    
-![GitHub stars](https://img.shields.io/github/stars/newrelic-experimental/nri-databricks?style=social)    
-![GitHub watchers](https://img.shields.io/github/watchers/newrelic-experimental/nri-databricks?style=social)    
+![GitHub forks](https://img.shields.io/github/forks/newrelic-experimental/nri-databricks?style=social)
+![GitHub stars](https://img.shields.io/github/stars/newrelic-experimental/nri-databricks?style=social)
+![GitHub watchers](https://img.shields.io/github/watchers/newrelic-experimental/nri-databricks?style=social)
     
-![GitHub all releases](https://img.shields.io/github/downloads/newrelic-experimental/nri-databricks/total)    
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/newrelic-experimental/nri-databricks)    
-![GitHub last commit](https://img.shields.io/github/last-commit/newrelic-experimental/nri-databricks)    
-![GitHub Release Date](https://img.shields.io/github/release-date/newrelic-experimental/nri-databricks)    
+![GitHub all releases](https://img.shields.io/github/downloads/newrelic-experimental/nri-databricks/total)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/newrelic-experimental/nri-databricks)
+![GitHub last commit](https://img.shields.io/github/last-commit/newrelic-experimental/nri-databricks)
+![GitHub Release Date](https://img.shields.io/github/release-date/newrelic-experimental/nri-databricks)
     
-    
-![GitHub issues](https://img.shields.io/github/issues/newrelic-experimental/nri-databricks)    
-![GitHub issues closed](https://img.shields.io/github/issues-closed/newrelic-experimental/nri-databricks)    
-![GitHub pull requests](https://img.shields.io/github/issues-pr/newrelic-experimental/nri-databricks)    
-![GitHub pull requests closed](https://img.shields.io/github/issues-pr-closed/newrelic-experimental/nri-databricks)    
+![GitHub issues](https://img.shields.io/github/issues/newrelic-experimental/nri-databricks)
+![GitHub issues closed](https://img.shields.io/github/issues-closed/newrelic-experimental/nri-databricks)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/newrelic-experimental/nri-databricks)
+![GitHub pull requests closed](https://img.shields.io/github/issues-pr-closed/newrelic-experimental/nri-databricks)
     
 # Databricks integration for New Relic    
   
