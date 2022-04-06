@@ -1,0 +1,18 @@
+integration_name: com.nrlabs.databricks
+run_as_service: True
+poll_interval: 30
+log_level: debug
+log_file: /tmp/nri-databricks.log
+spark:
+  cluster_name: $DB_CLUSTER_NAME
+  cluster_mode: driver_mode
+  master_ui_port: $MASTER_UI_PORT
+  conf_ui_port: $CONF_UI_PORT
+  driver_host: $CONF_PUBLIC_DNS
+newrelic:
+  api_endpoint: US
+  account_id: $NEWRELIC_ACCOUNT_ID
+  api_key: $NEWRELIC_LICENSE_KEY
+labels:
+  environment: prod
+
