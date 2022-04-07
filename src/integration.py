@@ -37,6 +37,15 @@ stage_keys = {'stageId': 'stageId', 'name': 'name', 'status': 'status', 'attempt
               'shuffleWriteBytes': 'shuffleWriteBytes', 'shuffleWriteRecords': 'shuffleWriteRecords',
               'memoryBytesSpilled': 'memoryBytesSpilled', 'diskBytesSpilled': 'diskBytesSpilled'}
 
+stream_stat_keys = {'batchDuration': 'batchDuration', 'numReceivers': 'numReceivers',
+                    'numActiveReceivers': 'numActiveReceivers', 'numInactiveReceivers': 'numInactiveReceivers',
+                    'numTotalCompletedBatches': 'numTotalCompletedBatches',
+                    'numRetainedCompletedBatches': 'numRetainedCompletedBatches',
+                    'numActiveBatches': 'numActiveBatches', 'numProcessedRecords': 'numProcessedRecords',
+                    'numReceivedRecords': 'numReceivedRecords', 'avgInputRate': 'avgInputRate',
+                    'avgSchedulingDelay': 'avgSchedulingDelay', 'avgProcessingTime': 'avgProcessingTime',
+                    'avgTotalDelay': 'avgTotalDelay'}
+
 
 def execute_spark_request(url):
     try:
@@ -54,45 +63,17 @@ def execute_spark_request(url):
         logger.exception(f"error executing spark request to url {url}")
 
 
-def post_metrics(nr_metrics):
-    nr_session = new_retry_session()
-    max_metrics = 2000
-    metric_batches = [nr_metrics[i:i + max_metrics] for i in range(0, len(nr_metrics), max_metrics)]
-
-    for metric_batch in metric_batches:
-        status_code = NewRelic.post_events(nr_session, metric_batch)
-        if status_code != 200:
-            logger.error(f'newrelic metric collector responded with status code {status_code}')
-        else:
-            logger.info(f'{len(metric_batch)} metrics sent to newrelic metric collector')
-
-
-def post_events(nr_events):
-    nr_session = new_retry_session()
-    # since the max number of events that can be posted in a single payload to New Relic is 2000
-    max_events = 2000
-    event_batches = [nr_events[i:i + max_events] for i in range(0, len(nr_events), max_events)]
-
-    for event_batch in event_batches:
-        status_code = NewRelic.post_events(nr_session, event_batch)
-        if status_code != 200:
-            logger.error(f'newrelic events collector responded with status code {status_code}')
-        else:
-            logger.info(f"{len(event_batch)} events posted to newrelic event collector")
-
-
-def test():
-    test_events = []
-    f = open("./sample.txt")
-    jobs_json = json.load(f)
-    for job in jobs_json:
-        nr_event = {key: value for key, value in job.items() if key in job_keys}
-        nr_event['eventType'] = 'SparkJob'
-        print(nr_event)
-        test_events.append(nr_event)
-
-    if test_events:
-        post_events(test_events)
+# def post_metrics(nr_metrics):
+#     nr_session = new_retry_session()
+#     max_metrics = 2000
+#     metric_batches = [nr_metrics[i:i + max_metrics] for i in range(0, len(nr_metrics), max_metrics)]
+#
+#     for metric_batch in metric_batches:
+#         status_code = NewRelic.post_events(nr_session, metric_batch)
+#         if status_code != 200:
+#             logger.error(f'newrelic metric collector responded with status code {status_code}')
+#         else:
+#             logger.info(f'{len(metric_batch)} metrics sent to newrelic metric collector')
 
 
 class Integration:
@@ -159,7 +140,7 @@ class Integration:
                 self.get_jobs_for_app(active_app['id'])
                 self.get_stages_for_app(active_app['id'])
                 self.get_executors_for_app(active_app['id'])
-                # self.get_statistics_for_app(active_app['id'])
+                self.get_statistics_for_app(active_app['id'])
 
     def get_jobs_for_app(self, app_id):
         nr_events = []
@@ -172,7 +153,7 @@ class Integration:
             nr_event['eventType'] = 'SparkJob'
             nr_events.append(nr_event)
         if nr_events:
-            post_events(nr_events)
+            self.post_events(nr_events)
 
     def get_stages_for_app(self, app_id):
         nr_events = []
@@ -185,7 +166,7 @@ class Integration:
             nr_event['eventType'] = 'SparkStage'
             nr_events.append(nr_event)
         if nr_events:
-            post_events(nr_events)
+            self.post_events(nr_events)
 
     def get_executors_for_app(self, app_id):
         nr_events = []
@@ -200,4 +181,30 @@ class Integration:
                 nr_event[k] = v
             nr_events.append(nr_event)
         if nr_events:
-            post_events(nr_events)
+            self.post_events(nr_events)
+
+    def get_stages_for_app(self, app_id):
+        nr_events = []
+        url = f'http://{self.driver_host}:{self.spark_conf_ui_port}/api/v1/applications/{app_id}/streaming/statistics'
+        stream_stats_json = execute_spark_request(url)
+        logger.debug("Processing streaming statistics")
+        for stream_stats in stream_stats_json:
+            logger.debug(stream_stats)
+            nr_event = {key: value for key, value in stream_stats.items() if key in stream_stat_keys}
+            nr_event['eventType'] = 'SparkStreamingStatistics'
+            nr_events.append(nr_event)
+        if nr_events:
+            self.post_events(nr_events)
+
+    def post_events(self, nr_events):
+        nr_session = new_retry_session()
+        # since the max number of events that can be posted in a single payload to New Relic is 2000
+        max_events = 2000
+        events_batches = [nr_events[i:i + max_events] for i in range(0, len(nr_events), max_events)]
+
+        for events_batch in events_batches:
+            status_code = NewRelic.post_events(nr_session, events_batch, self.labels)
+            if status_code != 200:
+                logger.error(f'newrelic events collector responded with status code {status_code}')
+            else:
+                logger.info(f"{len(events_batch)} events posted to newrelic event collector")

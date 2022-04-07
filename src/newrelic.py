@@ -29,7 +29,7 @@ class NewRelic:
         logger.info(f'Setting New Relic API endpoint {NewRelic.events_api_endpoint}')
 
     @classmethod
-    def post_events(cls, session, data):
+    def post_events(cls, session, data, labels):
         payload = gzip.compress(json.dumps(data).encode())
         headers = {
             "Api-Key": cls.events_api_key,

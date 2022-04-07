@@ -1,7 +1,7 @@
 integration_name: com.nrlabs.databricks
 run_as_service: True
 poll_interval: 30
-log_level: debug
+log_level: error
 log_file: /tmp/nri-databricks.log
 spark:
   cluster_name: $DB_CLUSTER_NAME
