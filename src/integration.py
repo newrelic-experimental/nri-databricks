@@ -102,6 +102,8 @@ class Integration:
                     self.labels[k] = v
             except ValueError as e:
                 logger.error(f'Ignoring NEWRELIC_TAGS as its value is not valid json', exc_info=True)
+            except json.decoder.JSONDecodeError:
+                logger.error(f'Ignoring NEWRELIC_TAGS as its value is not valid json', exc_info=True)
 
         self.driver_host = spark_config['driver_host']
         self.spark_conf_ui_port = spark_config['conf_ui_port']
@@ -154,7 +156,7 @@ class Integration:
                 self.get_jobs_for_app(active_app['id'])
                 self.get_stages_for_app(active_app['id'])
                 self.get_executors_for_app(active_app['id'])
-                self.get_statistics_for_app(active_app['id'])
+                # self.get_statistics_for_app(active_app['id'])
 
     def get_jobs_for_app(self, app_id):
         nr_events = []
