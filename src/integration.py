@@ -156,7 +156,7 @@ class Integration:
                 self.get_jobs_for_app(active_app['id'])
                 self.get_stages_for_app(active_app['id'])
                 self.get_executors_for_app(active_app['id'])
-                # self.get_statistics_for_app(active_app['id'])
+                self.get_statistics_for_app(active_app['id'])
 
     def get_jobs_for_app(self, app_id):
         nr_events = []
@@ -174,7 +174,7 @@ class Integration:
 
     def get_stages_for_app(self, app_id):
         nr_events = []
-        url = f'http://{self.driver_host}:{self.spark_conf_ui_port}/api/v1/applications/{app_id}/jobs'
+        url = f'http://{self.driver_host}:{self.spark_conf_ui_port}/api/v1/applications/{app_id}/stages'
         stages_json = execute_spark_request(url)
         logger.debug("Processing stages")
         for stage in stages_json:
@@ -202,7 +202,7 @@ class Integration:
         if nr_events:
             self.post_events(nr_events)
 
-    def get_stages_for_app(self, app_id):
+    def get_statistics_for_app(self, app_id):
         nr_events = []
         url = f'http://{self.driver_host}:{self.spark_conf_ui_port}/api/v1/applications/{app_id}/streaming/statistics'
         stream_stats_json = execute_spark_request(url)
