@@ -156,7 +156,7 @@ class Integration:
                 self.get_jobs_for_app(active_app['id'])
                 self.get_stages_for_app(active_app['id'])
                 self.get_executors_for_app(active_app['id'])
-                self.get_statistics_for_app(active_app['id'])
+                # self.get_statistics_for_app(active_app['id'])
 
     def get_jobs_for_app(self, app_id):
         nr_events = []
