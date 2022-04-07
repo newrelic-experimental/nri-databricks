@@ -29,6 +29,7 @@ The following environment variables should be defined in your databricks cluster
 
 1. NEWRELIC_ACCOUNT_ID
 2. NEWRELIC_LICENSE_KEY
+3. NEWRELIC_TAGS: (optional) a json string of key value pairs to set as tags for every event submitted to New Relic
 
 ## Configuration    
 
