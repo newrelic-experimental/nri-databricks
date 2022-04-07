@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import sys
 
 import requests
@@ -93,9 +94,22 @@ class Integration:
 
         self.labels = config['labels']
 
+        if os.environ['NEWRELIC_TAGS']:
+            tags = os.environ['NEWRELIC_TAGS']
+            try:
+                tags_json = json.loads(tags)
+                for k, v in tags_json.items():
+                    self.labels[k] = v
+            except ValueError as e:
+                logger.error(f'Ignoring NEWRELIC_TAGS as its value is not valid json', exc_info=True)
+
         self.driver_host = spark_config['driver_host']
         self.spark_conf_ui_port = spark_config['conf_ui_port']
         self.spark_master_ui_port = spark_config['master_ui_port']
+        cluster_name = spark_config['cluster_name']
+
+        self.labels['driverHost'] = self.driver_host
+        self.labels['clusterName'] = cluster_name
 
         newrelic_account_id = newrelic_config['account_id']
         newrelic_api_endpoint = newrelic_config['api_endpoint']
@@ -151,6 +165,7 @@ class Integration:
             logger.debug(job)
             nr_event = {key: value for key, value in job.items() if key in job_keys}
             nr_event['eventType'] = 'SparkJob'
+            nr_event.update(self.labels)
             nr_events.append(nr_event)
         if nr_events:
             self.post_events(nr_events)
@@ -164,6 +179,7 @@ class Integration:
             logger.debug(stage)
             nr_event = {key: value for key, value in stage.items() if key in stage_keys}
             nr_event['eventType'] = 'SparkStage'
+            nr_event.update(self.labels)
             nr_events.append(nr_event)
         if nr_events:
             self.post_events(nr_events)
@@ -177,6 +193,7 @@ class Integration:
             logger.debug(executor)
             nr_event = {key: value for key, value in executor.items() if key in executor_keys}
             nr_event['eventType'] = 'SparkExecutor'
+            nr_event.update(self.labels)
             for k, v in executor['memoryMetrics'].items():
                 nr_event[k] = v
             nr_events.append(nr_event)
@@ -192,6 +209,7 @@ class Integration:
             logger.debug(stream_stats)
             nr_event = {key: value for key, value in stream_stats.items() if key in stream_stat_keys}
             nr_event['eventType'] = 'SparkStreamingStatistics'
+            nr_event.update(self.labels)
             nr_events.append(nr_event)
         if nr_events:
             self.post_events(nr_events)
