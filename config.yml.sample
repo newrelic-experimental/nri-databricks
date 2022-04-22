@@ -10,7 +10,7 @@ spark:
   conf_ui_port: $CONF_UI_PORT
   driver_host: $CONF_PUBLIC_DNS
 newrelic:
-  api_endpoint: US
+  api_endpoint: $NEWRELIC_API_ENDPOINT
   account_id: $NEWRELIC_ACCOUNT_ID
   api_key: $NEWRELIC_LICENSE_KEY
 labels:
