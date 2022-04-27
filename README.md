@@ -20,7 +20,7 @@
   
 ## Installation    
 
-Import the `install-nr.pynb` notebook into your workspace and execute it. 
+Import the `[install-nr.pynb](https://github.com/newrelic-experimental/nri-databricks/releases/download/v1.0.1/install-nr.ipynb)` notebook into your workspace and execute it. 
 This will produce the initialization script that would download, install and configure this integration upon cluster initialization. 
 The file is written to this path **dbfs:/newrelic/nri-databricks-init.sh**
 Add this initialization script to the list of initialization files for every cluster manager that needs to be monitored.
