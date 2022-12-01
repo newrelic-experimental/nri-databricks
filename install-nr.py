@@ -80,7 +80,8 @@ labels:
     chmod 555 /etc/nri-databricks/nrdatabricksd
     chmod 555 /etc/init.d/nrdatabricksd
     # start service
-    /etc/init.d/nrdatabricksd start
+    /etc/nri-databricks/nrdatabricksd stop
+    /etc/nri-databricks/nrdatabricksd start
 fi
 }
 
