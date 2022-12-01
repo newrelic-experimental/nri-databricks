@@ -21,7 +21,7 @@ if [ $DB_IS_DRIVER ]; then
     echo " >>> UI Port: $CONF_UI_PORT "
     
     # Download or copy nri-databricks binary
-    wget https://github.com/newrelic-experimental/nri-databricks/releases/download/v1.0.1/nri-databricks.tar.gz -P /tmp
+    wget https://github.com/newrelic-experimental/nri-databricks/releases/latest/download/nri-databricks.tar.gz -P /tmp
     cd /etc
     tar xvf /tmp/nri-databricks.tar.gz
 
