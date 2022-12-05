@@ -157,7 +157,7 @@ class Integration:
 
         if self.spark_master_ui_port != '<<MASTER_UI_PORT>>':
             logger.info(
-                f"cluster is running in single node mode - port: {self.spark_master_ui_port}")
+                f"cluster is running in multi node mode - port: {self.spark_master_ui_port}")
             master_json_url = f'http://{self.driver_host}:{self.spark_master_ui_port}/json/'
             master_json = execute_spark_request(master_json_url)
             if master_json:
@@ -169,7 +169,7 @@ class Integration:
                     # self.get_statistics_for_app(active_app['id'])
         else:
             logger.info(
-                f"cluster is running in multi node mode - port: {self.spark_conf_ui_port}")
+                f"cluster is running in single node mode - port: {self.spark_conf_ui_port}")
             applications_json_url = f'http://{self.driver_host}:{self.spark_conf_ui_port}/api/v1/applications'
             applications_json = execute_spark_request(applications_json_url)
             if applications_json:
