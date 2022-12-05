@@ -21,8 +21,12 @@
 ## Installation    
 
 Import the [install-nr.py](https://github.com/newrelic-experimental/nri-databricks/releases/download/v1.1.0/install-nr.py) notebook into your workspace and execute it. 
+
 This will produce the initialization script that would download, install and configure this integration upon cluster initialization. 
-The file is written to this path **dbfs:/newrelic/nri-databricks-init.sh**
+
+The file is written to this path 
+- **dbfs:/newrelic/nri-databricks-init.sh**
+
 Add this initialization script to the list of initialization files for every cluster manager that needs to be monitored.
 
 The following environment variables should be defined in your databricks cluster configuration for the initialization script to create the correct configuration
