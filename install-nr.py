@@ -4,10 +4,15 @@
 dbutils.fs.put("dbfs:/newrelic/nri-databricks-init.sh", """ 
 #!/bin/sh
 
-install_nri_databricks () {
+echo "Check if this is driver? $DB_IS_DRIVER"
+echo "Spark Driver ip: $DB_DRIVER_IP"
 
+# Create Cluster init script
+cat <<EOF >> /tmp/start-databricks-metric.sh
+#!/bin/sh
+
+# wait for /tmp/driver-env.sh to be generated
 sleep 20
-
 if [ \$DB_IS_DRIVER ]; then
     echo " >>> Check if this is driver ? \$DB_IS_DRIVER "
     echo " >>> Spark Driver ip : \$DB_DRIVER_IP "
@@ -65,8 +70,7 @@ labels:
   environment: prod
          " > /etc/nri-databricks/config.yml
 
-    echo " >>> Configured  config.yml
- \$(</etc/nri-databricks/config.yml)"
+    echo " >>> Configured  config.yml \n$(</etc/nri-databricks/config.yml)"
 
     # copy service
     cp /etc/nri-databricks/nrdatabricksd /etc/init.d/
@@ -80,8 +84,11 @@ labels:
     /etc/nri-databricks/nrdatabricksd start
 
 fi
-}
+EOF
 
-install_nri_databricks || true
-
+# Start
+if [ \$DB_IS_DRIVER ]; then
+  chmod a+x /tmp/start-databricks-metric.sh
+  /tmp/start-databricks-metric.sh >> /tmp/start-databricks-metric.log 2>&1 &
+fi
 """, True)
