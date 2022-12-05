@@ -123,7 +123,6 @@ class Integration:
 
     def run(self):
         logger.debug("Executing integration")
-
         if self.spark_master_ui_port == '<<MASTER_UI_PORT>>':
             try:
                 with open('/tmp/master-params', mode='rt', encoding='utf-8') as f:
@@ -134,11 +133,11 @@ class Integration:
                             f"setting spark master_ui_port = {tokens[1]}")
                     self.spark_master_ui_port = tokens[1]
             except OSError:
-                logger.error(
-                    'error opening /tmp/master-params file', exc_info=True)
+                logger.info(
+                    'error opening /tmp/master-params file - cluster in single node mode', exc_info=True)
             except IndexError:
-                logger.error(
-                    'error reading /tmp/master-params file', exc_info=True)
+                logger.info(
+                    'error reading /tmp/master-params file - cluster in single node mode', exc_info=True)
 
         if self.driver_host == '<<CONF_PUBLIC_DNS>>' or self.spark_conf_ui_port == '<<CONF_UI_PORT>>':
             with open('/tmp/driver-env.sh', mode='rt', encoding='utf-8') as f:
