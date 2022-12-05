@@ -101,9 +101,11 @@ class Integration:
                 for k, v in tags_json.items():
                     self.labels[k] = v
             except ValueError as e:
-                logger.error(f'Ignoring NEWRELIC_TAGS as its value is not valid json', exc_info=True)
+                logger.error(
+                    f'Ignoring NEWRELIC_TAGS as its value is not valid json', exc_info=True)
             except json.decoder.JSONDecodeError:
-                logger.error(f'Ignoring NEWRELIC_TAGS as its value is not valid json', exc_info=True)
+                logger.error(
+                    f'Ignoring NEWRELIC_TAGS as its value is not valid json', exc_info=True)
 
         self.driver_host = spark_config['driver_host']
         self.spark_conf_ui_port = spark_config['conf_ui_port']
@@ -128,12 +130,15 @@ class Integration:
                     data = f.read()
                     tokens = data.split(' ')
                     if len(tokens) > 1:
-                        logger.info(f"setting spark master_ui_port = {tokens[1]}")
+                        logger.info(
+                            f"setting spark master_ui_port = {tokens[1]}")
                     self.spark_master_ui_port = tokens[1]
             except OSError:
-                logger.error('error opening /tmp/master-params file', exc_info=True)
+                logger.error(
+                    'error opening /tmp/master-params file', exc_info=True)
             except IndexError:
-                logger.error('error reading /tmp/master-params file', exc_info=True)
+                logger.error(
+                    'error reading /tmp/master-params file', exc_info=True)
 
         if self.driver_host == '<<CONF_PUBLIC_DNS>>' or self.spark_conf_ui_port == '<<CONF_UI_PORT>>':
             with open('/tmp/driver-env.sh', mode='rt', encoding='utf-8') as f:
@@ -143,20 +148,36 @@ class Integration:
                     if len(tokens) > 1:
                         if tokens[0].strip() == 'CONF_PUBLIC_DNS':
                             self.driver_host = tokens[1].strip()
-                            logger.info(f"extracting driver_host = {self.driver_host}")
+                            logger.info(
+                                f"extracting driver_host = {self.driver_host}")
                         elif tokens[0].strip() == 'CONF_UI_PORT':
                             self.spark_conf_ui_port = tokens[1].strip()
-                            logger.info(f"extracting conf_public_dns = {self.spark_conf_ui_port}")
+                            logger.info(
+                                f"extracting conf_public_dns = {self.spark_conf_ui_port}")
 
-        master_json_url = f'http://{self.driver_host}:{self.spark_master_ui_port}/json/'
-        master_json = execute_spark_request(master_json_url)
-        if master_json:
-            for active_app in master_json['activeapps']:
-                print(active_app['id'])
-                self.get_jobs_for_app(active_app['id'])
-                self.get_stages_for_app(active_app['id'])
-                self.get_executors_for_app(active_app['id'])
-                # self.get_statistics_for_app(active_app['id'])
+        if self.spark_master_ui_port != '<<MASTER_UI_PORT>>':
+            logger.info(
+                f"cluster is running in multi node mode - port: {self.spark_master_ui_port}")
+            master_json_url = f'http://{self.driver_host}:{self.spark_master_ui_port}/json/'
+            master_json = execute_spark_request(master_json_url)
+            if master_json:
+                for active_app in master_json['activeapps']:
+                    print(active_app['id'])
+                    self.get_jobs_for_app(active_app['id'])
+                    self.get_stages_for_app(active_app['id'])
+                    self.get_executors_for_app(active_app['id'])
+                    # self.get_statistics_for_app(active_app['id'])
+        else:
+            logger.info(
+                f"cluster is running in single node mode - port: {self.spark_conf_ui_port}")
+            applications_json_url = f'http://{self.driver_host}:{self.spark_conf_ui_port}/api/v1/applications'
+            applications_json = execute_spark_request(applications_json_url)
+            if applications_json:
+                for application in applications_json:
+                    self.get_jobs_for_app(application['id'])
+                    self.get_stages_for_app(application['id'])
+                    self.get_executors_for_app(application['id'])
+                    # self.get_statistics_for_app(application['id'])
 
     def get_jobs_for_app(self, app_id):
         nr_events = []
@@ -165,7 +186,8 @@ class Integration:
         logger.debug("Processing jobs")
         for job in jobs_json:
             logger.debug(job)
-            nr_event = {key: value for key, value in job.items() if key in job_keys}
+            nr_event = {key: value for key,
+                        value in job.items() if key in job_keys}
             nr_event['eventType'] = 'SparkJob'
             nr_event.update(self.labels)
             nr_events.append(nr_event)
@@ -179,7 +201,8 @@ class Integration:
         logger.debug("Processing stages")
         for stage in stages_json:
             logger.debug(stage)
-            nr_event = {key: value for key, value in stage.items() if key in stage_keys}
+            nr_event = {key: value for key,
+                        value in stage.items() if key in stage_keys}
             nr_event['eventType'] = 'SparkStage'
             nr_event.update(self.labels)
             nr_events.append(nr_event)
@@ -193,7 +216,8 @@ class Integration:
         logger.debug("Processing executors")
         for executor in executors_json:
             logger.debug(executor)
-            nr_event = {key: value for key, value in executor.items() if key in executor_keys}
+            nr_event = {key: value for key,
+                        value in executor.items() if key in executor_keys}
             nr_event['eventType'] = 'SparkExecutor'
             nr_event.update(self.labels)
             for k, v in executor['memoryMetrics'].items():
@@ -209,7 +233,8 @@ class Integration:
         logger.debug("Processing streaming statistics")
         for stream_stats in stream_stats_json:
             logger.debug(stream_stats)
-            nr_event = {key: value for key, value in stream_stats.items() if key in stream_stat_keys}
+            nr_event = {key: value for key,
+                        value in stream_stats.items() if key in stream_stat_keys}
             nr_event['eventType'] = 'SparkStreamingStatistics'
             nr_event.update(self.labels)
             nr_events.append(nr_event)
@@ -220,11 +245,15 @@ class Integration:
         nr_session = new_retry_session()
         # since the max number of events that can be posted in a single payload to New Relic is 2000
         max_events = 2000
-        events_batches = [nr_events[i:i + max_events] for i in range(0, len(nr_events), max_events)]
+        events_batches = [nr_events[i:i + max_events]
+                          for i in range(0, len(nr_events), max_events)]
 
         for events_batch in events_batches:
-            status_code = NewRelic.post_events(nr_session, events_batch, self.labels)
+            status_code = NewRelic.post_events(
+                nr_session, events_batch, self.labels)
             if status_code != 200:
-                logger.error(f'newrelic events collector responded with status code {status_code}')
+                logger.error(
+                    f'newrelic events collector responded with status code {status_code}')
             else:
-                logger.info(f"{len(events_batch)} events posted to newrelic event collector")
+                logger.info(
+                    f"{len(events_batch)} events posted to newrelic event collector")
