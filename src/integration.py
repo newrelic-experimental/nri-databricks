@@ -102,7 +102,6 @@ class Integration:
             logger.error(
                 f'Ignoring NEWRELIC_TAGS due to a ValueError', exc_info=True)
 
-
         self.driver_host = spark_config['driver_host']
         self.spark_conf_ui_port = spark_config['conf_ui_port']
         self.spark_master_ui_port = spark_config['master_ui_port']

@@ -34,10 +34,11 @@ The following environment variables should be defined in your databricks cluster
 1. NEWRELIC_ACCOUNT_ID
 2. NEWRELIC_LICENSE_KEY
 3. NEWRELIC_TAGS: 
-    - a json string of key value pairs to set as tags for every event submitted to New Relic
-    - set it to an empty json object `"{}"` (surrounded by double quites) if no custom tags are required.
-5. NEWRELIC_ENDPOINT_REGION
-    - Full URL for the New Relic Event API collector or short cuts "US" and "EU"
+    - dirctionary of key value pairs separated by comma for example
+      - `{"team": "FieldEngineering", "project": "DatabricksMonitoring", "cost_center": "12345"}`
+      - DO NOT wrapp the dictionary in quotes
+4. NEWRELIC_ENDPOINT_REGION
+    - Use "US" for US datacenter and "EU" for EU datacenter
     - If your New Relic account is in the US datacenter the variable is optional
 
 ## Configuration    

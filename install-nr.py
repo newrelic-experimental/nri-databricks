@@ -31,7 +31,7 @@ if [ $DB_IS_DRIVER ]; then
       exit 1
     fi
 
-    if ! curl -L --retry 3 --retry-delay 5 --silent --show-error -o /tmp/nri-databricks.tar.gz https://raw.githubusercontent.com/newrelic-experimental/nri-databricks/rewrite_init_script/nri-databricks.tar.gz; then
+    if ! curl -L --retry 3 --retry-delay 5 --silent --show-error -o /tmp/nri-databricks.tar.gz https://github.com/newrelic-experimental/nri-databricks/releases/latest/download/nri-databricks.tar.gz; then
       echo "Error: Failed to download nri-databricks binary."
       exit 1
     fi
@@ -66,6 +66,10 @@ if [ $DB_IS_DRIVER ]; then
 
     if [ -z $NEWRELIC_ENDPOINT_REGION ]; then
         NEWRELIC_ENDPOINT_REGION="US"
+    fi
+    
+    if [ -z $NEWRELIC_TAGS ]; then
+        NEWRELIC_TAGS="{}"
     fi
 
     cat <<CONFIG > /etc/nri-databricks/config.yml
