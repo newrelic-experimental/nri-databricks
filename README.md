@@ -33,7 +33,8 @@ The following environment variables should be defined in your databricks cluster
 
 1. NEWRELIC_ACCOUNT_ID
 2. NEWRELIC_LICENSE_KEY
-3. NEWRELIC_TAGS: 
+3. NEWRELIC_TAGS:
+    - (optional) tags to be added to every newrelic event
     - dirctionary of key value pairs separated by comma for example
       - `{"team": "FieldEngineering", "project": "DatabricksMonitoring", "cost_center": "12345"}`
       - DO NOT wrapp the dictionary in quotes
