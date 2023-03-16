@@ -4,53 +4,75 @@
 dbutils.fs.put("dbfs:/newrelic/nri-databricks-init.sh", """ 
 #!/bin/sh
 
-echo "Check if this is driver? $DB_IS_DRIVER"
-echo "Spark Driver ip: $DB_DRIVER_IP"
-
-# Create Cluster init script
 cat <<EOF >> /tmp/start-databricks-metric.sh
 #!/bin/sh
 
-# wait for /tmp/driver-env.sh to be generated
-sleep 20
-if [ \$DB_IS_DRIVER ]; then
-    echo " >>> Check if this is driver ? \$DB_IS_DRIVER "
-    echo " >>> Spark Driver ip : \$DB_DRIVER_IP "
-    echo " >>> Public DNS: \$CONF_PUBLIC_DNS "
-    echo " >>> UI Port: \$CONF_UI_PORT "
+set_execute_permission() {
+  for file in "\$@"; do
+    chmod 555 "\$file"
+  done
+}
 
-    # Download or copy nri-databricks binary
-    wget https://github.com/newrelic-experimental/nri-databricks/releases/latest/download/nri-databricks.tar.gz -P /tmp
+timeout=60
+while [ ! -e "/tmp/driver-env.sh" ] && [ \$timeout -gt 0 ]; do
+  sleep 1
+  timeout=\$((timeout-1))
+done
 
-    cd /etc
-    tar xvf /tmp/nri-databricks.tar.gz
+if [ $DB_IS_DRIVER ]; then
 
-    # fetch requirements
-    cd /etc/nri-databricks
-    python -m pip install -r requirements.txt || true
+    if [ -z "$NEWRELIC_ACCOUNT_ID" ]; then
+      echo "Error: NEWRELIC_ACCOUNT_ID environment variable is not set."
+      exit 1
+    fi
+
+    if [ -z "$NEWRELIC_LICENSE_KEY" ]; then
+      echo "Error: NEWRELIC_LICENSE_KEY environment variable is not set."
+      exit 1
+    fi
+
+    if ! curl -L --retry 3 --retry-delay 5 --silent --show-error -o /tmp/nri-databricks.tar.gz https://github.com/newrelic-experimental/nri-databricks/releases/latest/download/nri-databricks.tar.gz; then
+      echo "Error: Failed to download nri-databricks binary."
+      exit 1
+    fi
+
+    if [ -d "/etc/nri-databricks" ]; then
+      rm -rf /etc/nri-databricks
+    fi
+
+    mkdir -p /etc/nri-databricks
+    if ! tar xvf /tmp/nri-databricks.tar.gz -C /etc/nri-databricks; then
+      echo "Error: Failed to extract nri-databricks binary."
+      exit 1
+    fi
+
+    if ! python -m pip install -r /etc/nri-databricks/requirements.txt; then
+      echo "Error: Failed to install required packages."
+      exit 1
+    fi
 
     if [ -e "/tmp/driver-env.sh" ]; then
         . /tmp/driver-env.sh
-        echo "CONF_PUBLIC_DNS is \$CONF_PUBLIC_DNS"
-        echo "CONF_UI_PORT is \$CONF_UI_PORT"
     else
         CONF_PUBLIC_DNS='<<CONF_PUBLIC_DNS>>'
         CONF_UI_PORT='<<CONF_UI_PORT>>'
     fi
    
     if [ -e "/tmp/master-params" ]; then
-        MASTER_UI_PORT=\$(cat /tmp/master-params | cut -d ' ' -f 2)
+        MASTER_UI_PORT=$(cat /tmp/master-params | cut -d ' ' -f 2)
     else
         MASTER_UI_PORT='<<MASTER_UI_PORT>>'
     fi
 
-    if [ \$NEWRELIC_ENDPOINT_REGION == "" ]; then
+    if [ -z $NEWRELIC_ENDPOINT_REGION ]; then
         NEWRELIC_ENDPOINT_REGION="US"
     fi
+    
+    if [ -z $NEWRELIC_TAGS ]; then
+        NEWRELIC_TAGS="{}"
+    fi
 
-    # Create config.yml file (take care to format properly as is required for a yml file)
-
-    echo "
+    cat <<CONFIG > /etc/nri-databricks/config.yml
 integration_name: com.nrlabs.databricks
 run_as_service: True
 poll_interval: 30
@@ -68,27 +90,21 @@ newrelic:
   api_key: \$NEWRELIC_LICENSE_KEY
 labels:
   environment: prod
-         " > /etc/nri-databricks/config.yml
+tags: \$NEWRELIC_TAGS
+CONFIG
 
-    echo " >>> Configured  config.yml \n$(</etc/nri-databricks/config.yml)"
+    echo "Generated config.yml content:" >> /tmp/start-databricks-metric.log
+    cat /etc/nri-databricks/config.yml >> /tmp/start-databricks-metric.log
 
-    # copy service
-    cp /etc/nri-databricks/nrdatabricksd /etc/init.d/
-    # give execute permission
-    chmod 555 /etc/nri-databricks/src/__main__.py
-    chmod 555 /etc/nri-databricks/nrdatabricksd
-    chmod 555 /etc/init.d/nrdatabricksd
+    cp --force /etc/nri-databricks/nrdatabricksd /etc/init.d/
+    set_execute_permission /etc/nri-databricks/src/__main__.py /etc/nri-databricks/nrdatabricksd /etc/init.d/nrdatabricksd
 
-    # start service
-    /etc/nri-databricks/nrdatabricksd stop
-    /etc/nri-databricks/nrdatabricksd start
+    /etc/nri-databricks/nrdatabricksd start >> /tmp/nrdatabricksd_start.log 2>&1
 
 fi
 EOF
 
-# Start
-if [ \$DB_IS_DRIVER ]; then
-  chmod a+x /tmp/start-databricks-metric.sh
-  /tmp/start-databricks-metric.sh >> /tmp/start-databricks-metric.log 2>&1 &
-fi
+chmod a+x /tmp/start-databricks-metric.sh
+/tmp/start-databricks-metric.sh >> /tmp/start-databricks-metric.log 2>&1 &
+
 """, True)

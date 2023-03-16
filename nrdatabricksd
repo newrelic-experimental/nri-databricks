@@ -12,7 +12,8 @@
 
 # Change the next 3 lines to suit where you install your script and what you want to call it
 DIR=/etc/nri-databricks
-DAEMON=$DIR/src/__main__.py
+PYTHON_INTERPRETER=`command -v python3 || command -v python`
+DAEMON="$PYTHON_INTERPRETER $DIR/src/__main__.py"
 DAEMON_NAME=nrdatabricksd
 
 # Add any command line options for your daemon here
