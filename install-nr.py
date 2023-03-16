@@ -31,7 +31,7 @@ if [ $DB_IS_DRIVER ]; then
       exit 1
     fi
 
-    if ! curl -L --retry 3 --retry-delay 5 -o /tmp/nri-databricks.tar.gz https://raw.githubusercontent.com/newrelic-experimental/nri-databricks/rewrite_init_script/nri-databricks.tar.gz; then
+    if ! curl -L --retry 3 --retry-delay 5 --silent --show-error -o /tmp/nri-databricks.tar.gz https://raw.githubusercontent.com/newrelic-experimental/nri-databricks/rewrite_init_script/nri-databricks.tar.gz; then
       echo "Error: Failed to download nri-databricks binary."
       exit 1
     fi
@@ -84,7 +84,7 @@ labels:
   environment: prod
 CONFIG
 
-    cp /etc/nri-databricks/nrdatabricksd /etc/init.d/
+    cp --force /etc/nri-databricks/nrdatabricksd /etc/init.d/
     set_execute_permission /etc/nri-databricks/src/__main__.py /etc/nri-databricks/nrdatabricksd /etc/init.d/nrdatabricksd
 
     /etc/nri-databricks/nrdatabricksd stop
