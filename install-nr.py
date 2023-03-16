@@ -59,7 +59,7 @@ if [ $DB_IS_DRIVER ]; then
     fi
    
     if [ -e "/tmp/master-params" ]; then
-        MASTER_UI_PORT=$(cat /tmp/master-params | cut -d ' ' -f 2)
+        MASTER_UI_PORT=\$(cat /tmp/master-params | cut -d ' ' -f 2)
     else
         MASTER_UI_PORT='<<MASTER_UI_PORT>>'
     fi
