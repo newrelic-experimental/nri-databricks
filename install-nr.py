@@ -14,9 +14,9 @@ set_execute_permission() {
 }
 
 timeout=60
-while [ ! -e "/tmp/driver-env.sh" ] && [ $timeout -gt 0 ]; do
+while [ ! -e "/tmp/driver-env.sh" ] && [ \$timeout -gt 0 ]; do
   sleep 1
-  timeout=$((timeout-1))
+  timeout=\$((timeout-1))
 done
 
 if [ $DB_IS_DRIVER ]; then
@@ -36,7 +36,8 @@ if [ $DB_IS_DRIVER ]; then
       exit 1
     fi
 
-    if ! tar xvf /tmp/nri-databricks.tar.gz -C /etc; then
+    mkdir -p /etc/nri-databricks
+    if ! tar xvf /tmp/nri-databricks.tar.gz -C /etc/nri-databricks; then
       echo "Error: Failed to extract nri-databricks binary."
       exit 1
     fi
