@@ -94,14 +94,10 @@ class Integration:
 
         self.labels = config['labels']
 
-        tags_str = config.get("labels", {}).get("tags", "{}")
         try:
-            tags_json = json.loads(tags_str)
-            for k, v in tags_json.items():
+            tags_dict = config.get("tags", "{}")
+            for k, v in tags_dict.items():
                 self.labels[k] = v
-        except json.decoder.JSONDecodeError:
-            logger.error(
-                f'Ignoring NEWRELIC_TAGS as its value is not valid json', exc_info=True)
         except ValueError as e:
             logger.error(
                 f'Ignoring NEWRELIC_TAGS due to a ValueError', exc_info=True)

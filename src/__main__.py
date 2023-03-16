@@ -13,8 +13,21 @@ from yaml import Loader, load
 
 from integration import Integration
 
-# Configure logging
-logging.basicConfig(filename='/tmp/nri-databricks-app.log', level=logging.DEBUG)
+# Configure root logging
+def setup_root_logger():
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.DEBUG)
+
+    log_file = '/tmp/nri-databricks-app.log'
+    max_log_size_bytes = 1 * 1024 * 1024  # 1 MB
+    backup_count = 3  # Number of old log files to keep
+
+    handler = logging.handlers.RotatingFileHandler(log_file, maxBytes=max_log_size_bytes, backupCount=backup_count)
+    formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
+    handler.setFormatter(formatter)
+    root_logger.addHandler(handler)
+
+setup_root_logger()
 logging.debug('Starting nri-databricks...')
 
 config_dir = None
