@@ -94,18 +94,18 @@ class Integration:
 
         self.labels = config['labels']
 
-        if os.environ['NEWRELIC_TAGS']:
-            tags = os.environ['NEWRELIC_TAGS']
-            try:
-                tags_json = json.loads(tags)
-                for k, v in tags_json.items():
-                    self.labels[k] = v
-            except ValueError as e:
-                logger.error(
-                    f'Ignoring NEWRELIC_TAGS as its value is not valid json', exc_info=True)
-            except json.decoder.JSONDecodeError:
-                logger.error(
-                    f'Ignoring NEWRELIC_TAGS as its value is not valid json', exc_info=True)
+        tags_str = config.get("labels", {}).get("tags", "{}")
+        try:
+            tags_json = json.loads(tags_str)
+            for k, v in tags_json.items():
+                self.labels[k] = v
+        except json.decoder.JSONDecodeError:
+            logger.error(
+                f'Ignoring NEWRELIC_TAGS as its value is not valid json', exc_info=True)
+        except ValueError as e:
+            logger.error(
+                f'Ignoring NEWRELIC_TAGS due to a ValueError', exc_info=True)
+
 
         self.driver_host = spark_config['driver_host']
         self.spark_conf_ui_port = spark_config['conf_ui_port']

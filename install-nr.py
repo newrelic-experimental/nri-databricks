@@ -20,6 +20,8 @@ while [ ! -e "/tmp/driver-env.sh" ] && [ \$timeout -gt 0 ]; do
 done
 
 if [ $DB_IS_DRIVER ]; then
+    # download jq for parsing json
+    apk add --no-cache jq
 
     if [ -z "$NEWRELIC_ACCOUNT_ID" ]; then
       echo "Error: NEWRELIC_ACCOUNT_ID environment variable is not set."
@@ -68,6 +70,13 @@ if [ $DB_IS_DRIVER ]; then
         NEWRELIC_ENDPOINT_REGION="US"
     fi
 
+    # check if NEWRELIC_TAGS is valid json or assing empty json
+    NEWRELIC_TAGS_VALID_JSON=$(echo "$NEWRELIC_TAGS" | jq -e . 2>/dev/null || echo "{}")
+    if [ "$NEWRELIC_TAGS_VALID_JSON" = "{}" ] && [ -n "$NEWRELIC_TAGS" ]; then
+        echo "Warning: NEWRELIC_TAGS is not a valid JSON. Using an empty JSON object instead."
+    fi
+    NEWRELIC_TAGS=$NEWRELIC_TAGS_VALID_JSON
+
     cat <<CONFIG > /etc/nri-databricks/config.yml
 integration_name: com.nrlabs.databricks
 run_as_service: True
@@ -86,6 +95,7 @@ newrelic:
   api_key: \$NEWRELIC_LICENSE_KEY
 labels:
   environment: prod
+  tags: \$NEWRELIC_TAGS
 CONFIG
 
     cp --force /etc/nri-databricks/nrdatabricksd /etc/init.d/
