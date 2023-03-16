@@ -13,6 +13,10 @@ from yaml import Loader, load
 
 from integration import Integration
 
+# Configure logging
+logging.basicConfig(filename='/tmp/nri-databricks-app.log', level=logging.DEBUG)
+logging.debug('Starting nri-databricks...')
+
 config_dir = None
 argv = sys.argv[1:]
 print(f'using program arguments {argv}')
@@ -68,27 +72,31 @@ def main():
     # Attach the handler to the logger
     logger.addHandler(handler)
 
-    if not run_as_service:
-        integration = Integration(config)
-        integration.run()
-    else:
-        poll_interval = config.get('poll_interval')
-        integration = Integration(config)
-        jobstores = {
-            'default': MemoryJobStore(),
-        }
-        executors = {
-            'default': ThreadPoolExecutor(20),
-        }
-        job_defaults = {
-            'coalesce': False,
-            'max_instances': 3
-        }
-        scheduler = BlockingScheduler(jobstores=jobstores, executors=executors, job_defaults=job_defaults, timezone=utc)
-        scheduler.add_job(integration.run, trigger='interval', seconds=poll_interval)
-        scheduler.start()
-        print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
-
+    try:
+        if not run_as_service:
+            integration = Integration(config)
+            integration.run()
+        else:
+            poll_interval = config.get('poll_interval', 30)  # default to 30 seconds if not specified
+            integration = Integration(config)
+            jobstores = {
+                'default': MemoryJobStore(),
+            }
+            executors = {
+                'default': ThreadPoolExecutor(20),
+            }
+            job_defaults = {
+                'coalesce': False,
+                'max_instances': 3
+            }
+            scheduler = BlockingScheduler(jobstores=jobstores, executors=executors, job_defaults=job_defaults, timezone=utc)
+            logging.info("Adding integration job to scheduler")
+            scheduler.add_job(integration.run, trigger='interval', seconds=poll_interval)
+            logging.info("Starting scheduler")
+            scheduler.start()
+            print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
+    except Exception as e:
+        logging.exception("Error occurred while executing the main function: %s", e)
 
 if __name__ == "__main__":
     main()

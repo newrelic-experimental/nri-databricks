@@ -36,6 +36,10 @@ if [ $DB_IS_DRIVER ]; then
       exit 1
     fi
 
+    if [ -d "/etc/nri-databricks" ]; then
+      rm -rf /etc/nri-databricks
+    fi
+
     mkdir -p /etc/nri-databricks
     if ! tar xvf /tmp/nri-databricks.tar.gz -C /etc/nri-databricks; then
       echo "Error: Failed to extract nri-databricks binary."
@@ -88,7 +92,7 @@ CONFIG
     set_execute_permission /etc/nri-databricks/src/__main__.py /etc/nri-databricks/nrdatabricksd /etc/init.d/nrdatabricksd
 
     /etc/nri-databricks/nrdatabricksd stop
-    /etc/nri-databricks/nrdatabricksd start
+    /etc/nri-databricks/nrdatabricksd start >> /tmp/nrdatabricksd_start.log 2>&1
 
 fi
 EOF
